@@ -158,11 +158,14 @@ def _convert_int(self):
         )
 
     _prior_dispatch = {
+        "uniform": make_uniform,
+        "reciprocal": make_loguniform,
+
         "int_uniform": make_uniform,
         "int_reciprocal": make_loguniform,
 
         # TODO: Need to support access to prior object through transformation
-        # "int_norm": make_normal,
+        "int_norm": make_normal,
         'norm': make_normal,
         'normal': make_normal,
     }
