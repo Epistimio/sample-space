@@ -119,7 +119,7 @@ def _convert_real(self):
         'reciprocal': make_loguniform
     }
 
-    return _prior_dispatch.get(self._prior_name, _not_implemented(self._prior_name))()
+    return _prior_dispatch.get(self.prior_name, _not_implemented(self.prior_name))()
 
 
 def _convert_int(self):
@@ -170,7 +170,7 @@ def _convert_int(self):
         'normal': make_normal,
     }
 
-    return _prior_dispatch.get(self._prior_name, _not_implemented(self._prior_name))()
+    return _prior_dispatch.get(self.prior_name, _not_implemented(self.prior_name))()
 
 
 def _convert_categorical(self):
