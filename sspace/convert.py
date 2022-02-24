@@ -137,16 +137,6 @@ def _convert_int(self):
         return csh.NormalIntegerHyperparameter(
             self.name, mu=a, sigma=b, default_value=self.default_value, q=None, log=False)
 
-
-    _prior_dispatch = {
-        'uniform': make_uniform,
-        'reciprocal': make_loguniform,
-        'norm': make_normal,
-        'normal': make_normal,
-    }
-
-    return _prior_dispatch.get(self._prior_name, _not_implemented(self._prior_name))()
-
     def make_normal():
         return csh.NormalIntegerHyperparameter(
             self.name,
@@ -169,9 +159,12 @@ def _convert_int(self):
 
     _prior_dispatch = {
         "int_uniform": make_uniform,
+        "int_reciprocal": make_loguniform,
+
         # TODO: Need to support access to prior object through transformation
         # "int_norm": make_normal,
-        "int_reciprocal": make_loguniform,
+        'norm': make_normal,
+        'normal': make_normal,
     }
 
     return _prior_dispatch.get(self._prior_name, _not_implemented(self._prior_name))()
