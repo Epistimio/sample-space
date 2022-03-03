@@ -35,7 +35,8 @@ import numbers
 import numpy
 from scipy.stats import distributions
 
-from sspace.orion.utils import flatten, float_to_digits_list, tuple_to_dict
+from sspace.orion.utils import flatten, float_to_digits_list
+from sspace.orion.legacy import format_trials
 
 logger = logging.getLogger(__name__)
 
@@ -991,7 +992,7 @@ class Space(dict):
         """
         rng = check_random_state(seed)
         samples = [dim.sample(n_samples, rng) for dim in self.values()]
-        return [tuple_to_dict(point, self) for point in zip(*samples)]
+        return [format_trials.tuple_to_trial(point, self) for point in zip(*samples)]
 
     def interval(self, alpha=1.0):
         """Return a list with the intervals for each contained dimension."""
@@ -1047,8 +1048,13 @@ class Space(dict):
         if isinstance(key_or_trial, str):
             return super(Space, self).__contains__(key_or_trial)
 
-        trial = key_or_trial
-        flattened_params = flatten(trial.params)
+        if hasattr(key_or_trial, 'params'):
+            trial = key_or_trial
+            flattened_params = flatten(trial.params)
+
+        else:
+            flattened_params = flatten(key_or_trial)
+
         keys = set(flattened_params.keys())
         for dim_name, dim in self.items():
             if dim_name not in keys or flattened_params[dim_name] not in dim:

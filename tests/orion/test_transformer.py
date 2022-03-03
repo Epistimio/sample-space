@@ -28,6 +28,9 @@ from sspace.orion.transformer import (
 )
 
 
+from sspace.orion.legacy import Param, Trial, format_trials
+
+
 class TestIdentity(object):
     """Test subclasses of `Identity` transformation."""
 
@@ -1428,8 +1431,5 @@ def test_change_trial_params(space, rspace):
 
     # Test params are updated
     assert restored_trial.params != rtrial.params
-    assert restored_trial.params == trial.params
+    assert all([a == b for a, b in zip(restored_trial.params, trial.params)])
 
-    # Test that id is based on current params
-    assert restored_trial.id != rtrial.id
-    assert restored_trial.id == trial.id

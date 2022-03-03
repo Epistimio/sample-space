@@ -19,9 +19,9 @@ from sspace.orion.space import (
     Space,
     check_random_state,
 )
-from sspace.orion.utils import tuple_to_dict
+from sspace.orion.utils import tuple_to_dict, unflatten
 from sspace.orion.transformer import Precision
-
+from sspace.orion.legacy import format_trials, Param, Trial
 
 
 class TestCheckRandomState:

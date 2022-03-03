@@ -89,8 +89,9 @@ def tuple_to_dict(data, space):
             f"Data point is not compatible with search space:\ndata: {data}\nspace: {space}"
         )
 
-    params = []
+    params = {}
     for i, dim in enumerate(space.values()):
-        params.append(dict(name=dim.name, type=dim.type, value=data[i]))
+        # params.append(dict(name=dim.name, type=dim.type, value=data[i]))
+        params[dim.name] = data[i]
 
     return params

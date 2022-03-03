@@ -114,12 +114,12 @@ class DimensionBuilder(object):
     --------
     >>> dimbuilder = DimensionBuilder()
     >>> dimbuilder.build('learning_rate', 'loguniform(0.001, 1, shape=10)')
-    Real(name=learning_rate, prior={reciprocal: (0.001, 1), {}}, shape=(10,))
+    Real(name=learning_rate, prior={reciprocal: (0.001, 1), {}}, shape=(10,), default value=None)
     >>> dimbuilder.build('something_else', 'poisson(mu=3)')
-    Integer(name=something_else, prior={poisson: (), {'mu': 3}}, shape=())
+    Integer(name=something_else, prior={poisson: (), {'mu': 3}}, shape=(), default value=None)
     >>> dim = dimbuilder.build('other2', 'uniform(-5, 2)')
     >>> dim
-    Real(name=other2, prior={uniform: (-5, 7), {}}, shape=())
+    Real(name=other2, prior={uniform: (-5, 7), {}}, shape=(), default value=None)
     >>> dim.interval()
     (-5.0, 2.0)
 

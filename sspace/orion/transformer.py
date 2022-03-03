@@ -15,7 +15,8 @@ from abc import ABCMeta, abstractmethod
 import numpy
 
 from sspace.orion.space import Categorical, Dimension, Fidelity, Integer, Real, Space
-from sspace.orion.utils import flatten, tuple_to_dict
+from sspace.orion.utils import flatten
+from sspace.orion.legacy import format_trials
 
 NON_LINEAR = ["loguniform", "reciprocal"]
 
@@ -846,7 +847,7 @@ class ReshapedSpace(Space):
 
     def reshape(self, trial):
         """Reshape the point"""
-        point = tuple_to_dict(trial, self._original_space)
+        point = format_trials.trial_to_tuple(trial, self._original_space)
         reshaped_point = []
         for dim in self.values():
             reshaped_point.append(dim.transform(point[dim.index]))
@@ -855,7 +856,7 @@ class ReshapedSpace(Space):
 
     def restore_shape(self, transformed_trial):
         """Restore shape."""
-        transformed_point = tuple_to_dict(transformed_trial, self)
+        transformed_point = format_trials.trial_to_tuple(transformed_trial, self)
         original_keys = self._original_space.keys()
         point = [None for _ in original_keys]
         for index, dim in enumerate(self.values()):
@@ -896,5 +897,5 @@ def change_trial_params(trial, point, space):
     """Convert params in Param objects and update trial"""
     new_trial = copy.copy(trial)
     # pylint: disable=protected-access
-    new_trial._params = tuple_to_dict(point, space)._params
+    new_trial._params = format_trials.tuple_to_trial(point, space)._params
     return new_trial
