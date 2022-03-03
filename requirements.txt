@@ -1,2 +1,4 @@
 ConfigSpace
 orion
+scipy
+numpy
