@@ -24,6 +24,7 @@ args = dict(
     ],
     setup_requires=['setuptools'],
     install_requires=[
+        'scipy',
         'ConfigSpace'
     ]
 )
