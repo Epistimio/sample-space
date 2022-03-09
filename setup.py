@@ -10,7 +10,7 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 
 args = dict(
     name='sspace',
-    version='0.0.0',
+    version='0.0.1',
     description='Sample Space Builder',
     long_description=open(
         os.path.join(repo_root, "README.rst"), "rt", encoding="utf8"
