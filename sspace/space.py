@@ -1,13 +1,17 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from collections import OrderedDict
 from functools import partial
 import hashlib
-from typing import Dict, Union, List, Optional
+from typing import Dict, Union, List, Optional, TypeVar, Tuple
 
 from sspace.orion.utils import flatten
 
 from sspace.conditionals import eq, ne, lt, gt, contains, both, either, _Condition
 from sspace.backends import _OrionSpaceBuilder, _ConfigSpaceBuilder, _ShortSerializer
+
+
+# cant import Transformer
+Transformer = TypeVar('Transformer')
 
 
 class MissingVariable(Exception):
@@ -91,6 +95,61 @@ class Dimension:
         self.condition = cond
         return None
 
+    def transformer(self) -> Transformer:
+        """Returns the transformer to add transforms to current dimensions
+
+        Examples
+        --------
+        >>> from sspace import Space
+        >>> space = Space()
+        >>> a = space.categorical('a', ['v1', 'v2'])
+        >>> b = space.categorical('b', ['v1', 'v2'])
+        >>> a.transformer().enumerate()
+        >>> b.transformer().onehot()
+        >>> space.sample()
+        [OrderedDict([('a', 0), ('b', [0, 1])])]
+        """
+        return self.transformer
+
+    def transform(self):
+        """Returns a transformed dimension
+
+        Examples
+        --------
+        >>> from sspace import Space
+        >>> space = Space()
+        >>> a = space.categorical('a', ['v1', 'v2'])
+        >>> a.transform()
+
+        """
+        return self.transformer.transform(self)
+
+    def apply(self, sample):
+        """Apply transforms to a given sample
+
+        Examples
+        --------
+        >>> from sspace import Space
+        >>> space = Space()
+        >>> a = space.categorical('a', ['v1', 'v2'])
+        >>> a.transformer().enumerate()
+        >>> a.apply()
+        """
+        return self.transformer.apply(self, sample)
+
+    def unapply(self, sample):
+        """Remove transforms to a given sample
+
+        Examples
+        --------
+        >>> from sspace import Space
+        >>> space = Space()
+        >>> a = space.categorical('a', ['v1', 'v2'])
+        >>> a.transformer().enumerate()
+        >>> a.unapply()
+        """
+        return self.transformer.unapply(self, sample)
+
     def visit(self, visitor, *args, **kwargs):
         raise NotImplementedError()
 
@@ -102,10 +161,12 @@ class Uniform(Dimension):
     b: Union[int, float]
     discrete: bool = False
     log: bool = False
+    shape: Optional[Tuple] = None
     quantization: Union[int, float] = None
     space = None
     condition: Optional[_Condition] = None
     forbidden: Optional[_Condition] = None
+    transformer: Transformer = field(default_factory=Transformer)
 
     @property
     def lower(self):
@@ -138,10 +199,12 @@ class Normal(Dimension):
     scale: Union[int, float]
     discrete: bool = False
     log: bool = False
+    shape: Optional[Tuple] = None
     quantization: Union[int, float] = None
     space = None
     condition: Optional[_Condition] = None
     forbidden: Optional[_Condition] = None
+    transformer: Transformer = field(default_factory=Transformer)
 
     def visit(self, visitor, *args, **kwargs):
         return visitor.dim_leaf(
@@ -163,9 +226,11 @@ class Normal(Dimension):
 class Categorical(Dimension):
     name: str
     options: Dict[str, float]
+    shape: Optional[Tuple] = None
     space = None
     condition: Optional[_Condition] = None
     forbidden: Optional[_Condition] = None
+    transformer: Transformer = field(default_factory=Transformer)
 
     @property
     def choices(self):
@@ -186,9 +251,11 @@ class Categorical(Dimension):
 class Ordinal(Dimension):
     name: str
     values: List
+    shape: Optional[Tuple] = None
     space = None
     condition: Optional[_Condition] = None
     forbidden: Optional[_Condition] = None
+    transformer: Transformer = field(default_factory=Transformer)
 
     def visit(self, visitor, *args, **kwargs):
         return visitor.dim_leaf('ordinal', *args, name=self.name, sequence=list(self.values), **kwargs)
@@ -270,8 +337,11 @@ class Space(Dimension):
         return visitor.dim_node(self, *args, **kwargs)
 
     def _factory(self, ctor, name, *args, **kwargs):
-        namespaces = name.split('.')
+        dim = ctor(name, *args, **kwargs)
+        return self._add_dim(dim)
 
+    def _add_dim(self, dim):
+        namespaces = dim.name.split('.')
         prev = self.space_tree
         parent_space = self
         last_name = namespaces[-1]
@@ -291,10 +361,9 @@ class Space(Dimension):
                 last_name = '.'.join(namespaces[i:])
                 break
 
-        p = ctor(name, *args, **kwargs)
-        p.space = parent_space
-        prev[last_name] = p
-        return p
+        dim.space = parent_space
+        prev[last_name] = dim
+        return dim
 
     def uniform(self, name, lower, upper, discrete=False, log=False, quantization=None):
         """Add a new normal hyper-parameter
@@ -623,6 +692,16 @@ class Space(Dimension):
         self.sampler = partial(backend_type.sample, self.space_handle)
 
         return self.space_handle
+
+    def transform(self):
+        """Returns a transformed space"""
+        transformed = Space()
+
+        for _, dim in self.space_tree.items():
+            new_dim = dim.transform()
+            transformed._add_dim(new_dim)
+
+        return transformed
 
     def sample(self, n_samples=1, seed=0, **variables):
         """Sample a configuration using the underlying sampler.
