@@ -20,7 +20,8 @@ args = dict(
     url="https://github.com/epistimio/sspace",
     packages=[
         'sspace',
-        'sspace.backends'
+        'sspace.backends',
+        'sspace.orion',
     ],
     setup_requires=['setuptools'],
     install_requires=[
